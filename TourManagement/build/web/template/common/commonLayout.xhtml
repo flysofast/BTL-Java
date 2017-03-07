@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"   
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      >
+
+    <h:head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />	
+
+        <h:outputScript library="js" name="jquery-3.1.1.min.js" />          
+        <h:outputScript name="bootstrap/js/bootstrap.min.js" />      
+        <h:outputScript library="js" name="admin-script.js" />
+        <h:outputStylesheet name="bootstrap/css/bootstrap.min.css" />   
+    </h:head>
+
+    <h:body>
+        <div class="container-fluid">
+            <div class="row content">
+                <!-- Side bar -->
+                <div class="col-sm-2 sidenav">
+                    <h4>Tour Management</h4>
+                    <ul class="nav nav-pills nav-stacked tabs">
+                        <li id="li-user-management">
+                            <h:link value="User" outcome="${pageContext.request.contextPath}/Admin/UserManagement" />
+                        </li>
+                        <li id="li-tour-management">
+                            <h:link value="Tour" outcome="${pageContext.request.contextPath}/Admin/TourManagement" />
+                        </li>
+                        <li id="li-tour-category-management">
+                            <h:link value="Tour Categories" outcome="${pageContext.request.contextPath}/Admin/TourCategoryManagement" />
+                        </li>
+                        <li id="li-customer-management">
+                            <h:link value="Customer" outcome="${pageContext.request.contextPath}/Admin/CustomerManagement" />
+                        </li>
+                        <li id="li-booking-management">
+                            <h:link value="Booking" outcome="${pageContext.request.contextPath}/Admin/BookingManagement" />
+                        </li>
+                    </ul>                    
+                </div>
+                <!-- Content -->
+                <div class="col-sm-10" id="page-contain">   
+                    <ui:insert name="content" >
+                        <ui:include src="/template/common/commonContent.xhtml" />
+                    </ui:insert>
+                </div>
+            </div>
+        </div>
+
+
+    </h:body>
+
+</html>
