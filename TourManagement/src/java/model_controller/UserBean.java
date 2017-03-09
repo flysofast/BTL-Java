@@ -31,6 +31,15 @@ public class UserBean implements Serializable {
     private String password;
     private int RoleNo;
     private int status;
+    private UserBean selectedUser;
+
+    public UserBean getSelectedUser() {
+        return selectedUser;
+    }
+
+    public void setSelectedUser(UserBean selectedUser) {
+        this.selectedUser = selectedUser;
+    }
     
     public UserBean(String username, String password, int RoleNo, int status) {
         this.username = username;
@@ -96,7 +105,7 @@ public class UserBean implements Serializable {
     private final String sqlCreate = "INSERT INTO Users VALUES(?, ?, ?, ?)";
     private final String sqlRead = "SELECT * FROM Users";
     private final String sqlReadById = "SELECT * FROM Users WHERE UserID = ?";
-    private final String sqlUpdate = "UPDATE Users SET Username = ?, Password = ?, RoleNo = ?, Status = ? WHERE UserID = ?";
+    private final String sqlUpdate = "SELECT * FROM Users WHERE UserID = ?";
     private final String sqlDelete = "DELETE FROM Users WHERE UserID = ?";
     private Connection connect;
     private ConfigDB db = new ConfigDB();

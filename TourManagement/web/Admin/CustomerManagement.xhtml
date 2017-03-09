@@ -4,6 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:fcore="http://java.sun.com/jsf/core" 
+      xmlns:p="http://primefaces.org/ui"
       >
     <h:body>
 
@@ -15,7 +17,166 @@
                         $("#li-customer-management").addClass("active");
                     })
                 </script>
-                <h2>This is Customer content</h2>
+                <h:outputScript name="jquery/jquery-plugins.js" library="primefaces"/>
+                <center>
+                    <!-- Add form-->
+                    <h:form id="addForm">
+                        <h:panelGrid border="0" cellpadding="30" cellspacing="30" columns="3">
+                            <h:outputLabel>User ID:</h:outputLabel>
+                            <h:selectOneMenu value="#{customerBean.userID.userID}"
+                                             converter="#{userConverterBean}" >
+                                <fcore:selectItems value="#{userBean.readAll()}" var="user" itemValue="#{user.userID}" itemLabel="#{user.username}"/>
+                            </h:selectOneMenu>    
+                            <h:message for="errNameMess"/>
+                            <h:outputLabel>Name: </h:outputLabel>
+                            <h:inputText value="#{customerBean.name}" required="true" requiredMessage="Name is required" id="errNameMess"/>
+                            <h:message for="errNameMess"/>
+                            <h:outputLabel>Email:</h:outputLabel>
+                            <h:inputText value="#{customerBean.email}" required="true" requiredMessage="email is required" id="errEmailMess"/>    
+                            <h:message for="errEmailMess"/>
+                            <h:outputLabel>Mobile:</h:outputLabel>
+                            <h:inputText value="#{customerBean.mobile}" required="true" requiredMessage="Mobile is required" id="errMobileMess"/>    
+                            <h:message for="errMobileMess"/>
+                            <h:outputLabel>Address:</h:outputLabel>
+                            <h:inputText value="#{customerBean.address}" required="true" requiredMessage="Address is required" id="errAddressMess"/>    
+                            <h:message for="errAddressMess"/>
+                            <h:outputLabel>Personal Number</h:outputLabel>
+                            <h:inputText value="#{customerBean.personalNumber}" required="true" requiredMessage="Personal number is required" id="errPersonalNumberMess"/>    
+                            <h:message for="errPersonalNumberMess"/>
+                            <p:commandButton id="add" actionListener="#{customerBean.create()}" value="Add" update=":tableForm:table">
+                            </p:commandButton>
+
+                        </h:panelGrid>
+                    </h:form>
+
+                    <!-- Manager form-->
+                    <h:form id="tableForm">
+                        <p:dataTable id="table" var="item" value="#{customerBean.readAll()}" widgetVar="customeTable" paginator="true" rows="10"
+                                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}" 
+                                     paginatorPosition="bottom" lazy="true"
+                                     style="width:900px;" emptyMessage="Data not found">  
+                            <fcore:facet name="header">
+                                This is Customer content
+                            </fcore:facet>
+                            <p:column headerText="Customer ID">  
+                                <h:outputText value="#{item.customerID}" />  
+                            </p:column>  
+                            <p:column headerText="Name">  
+                                <h:outputText value="#{item.name}" />  
+                            </p:column> 
+                            <p:column headerText="Username">  
+                                <h:outputText value="#{item.userID.username}" />  
+                            </p:column> 
+                            <p:column headerText="Email">  
+                                <h:outputText value="#{item.email}" />  
+                            </p:column> 
+                            <p:column headerText="Mobile">  
+                                <h:outputText value="#{item.mobile}" />  
+                            </p:column> 
+                            <p:column headerText="Address">  
+                                <h:outputText value="#{item.address}" />  
+                            </p:column> 
+                            <p:column headerText="Personal Number">  
+                                <h:outputText value="#{item.personalNumber}" />  
+                            </p:column> 
+
+                            <p:column>
+                                <p:commandButton update=":tableForm:customerDetail" oncomplete="PF('customerDialog').show()" icon="ui-icon-search" title="View">
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{customerBean.selectedCustomer}" />
+                                </p:commandButton>
+                                <p:commandButton update=":tableForm:customerEdit" oncomplete="PF('customerEditDialog').show()" icon="ui-icon-pencil" title="Edit">
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{customerBean.selectedCustomer}" />
+                                </p:commandButton>
+                                <p:commandButton update=":tableForm:customerDelete" oncomplete="PF('customerDeleteDialog').show()"  icon="ui-icon-trash" title="Delete" >
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{customerBean.selectedCustomer}"  />
+                                </p:commandButton>
+                            </p:column>
+
+                        </p:dataTable>
+
+                        <!-- Dialog for view Detail-->
+                        <p:dialog header="Customer Info" widgetVar="customerDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                            <p:outputPanel id="customerDetail" style="text-align:center;">
+                                <p:panelGrid  columns="2" rendered="#{not empty customerBean.selectedCustomer}" >
+                                    <h:outputText value="Customer ID" />
+                                    <h:outputText value="#{customerBean.selectedCustomer.customerID}" />
+
+                                    <h:outputText value="Name" />
+                                    <h:outputText value="#{customerBean.selectedCustomer.name}" />
+
+                                    <h:outputText value="Username" />
+                                    <h:outputText value="#{customerBean.selectedCustomer.userID.userID}" />
+
+                                    <h:outputText value="Email" />
+                                    <h:outputText value="#{customerBean.selectedCustomer.email}"/>
+
+                                    <h:outputText value="Mobile" />
+                                    <h:outputText value="#{customerBean.selectedCustomer.mobile}"/>
+
+                                    <h:outputText value="Address" />
+                                    <h:outputText value="#{customerBean.selectedCustomer.address}"/>
+
+                                    <h:outputText value="Personal Number" />
+                                    <h:outputText value="#{customerBean.selectedCustomer.personalNumber}"/>
+
+                                </p:panelGrid>
+                            </p:outputPanel>
+                        </p:dialog>
+
+                        <!-- Dialog for edit-->
+                        <p:dialog header="Customer Edit" widgetVar="customerEditDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                            <p:outputPanel id="customerEdit" style="text-align:center;">
+                                <p:panelGrid  columns="2" rendered="#{not empty customerBean.selectedCustomer}" >
+                                    <h:outputText value="Customer ID" />                                           
+                                    <h:outputText value="#{customerBean.selectedCustomer.customerID}" />
+
+                                    <h:outputText value="Name" />
+                                    <h:inputText value="#{customerBean.selectedCustomer.name}" required="true" requiredMessage="Please enter name" />    
+
+                                    <h:outputText value="UserID" />
+                                    <h:selectOneMenu value="#{customerBean.selectedCustomer.userID.userID}"
+                                                     converter="#{userConverterBean}" >
+                                        <fcore:selectItems value="#{userBean.readAll()}" var="user" itemValue="#{user.userID}" itemLabel="#{user.username}"/>
+                                    </h:selectOneMenu>    
+
+                                    <h:outputText value="Email" />
+                                    <h:inputText value="#{customerBean.selectedCustomer.email}" required="true" requiredMessage="Please enter email" />    
+
+                                    <h:outputText value="Mobile" />
+                                    <h:inputText value="#{customerBean.selectedCustomer.mobile}" required="true" requiredMessage="Please enter mobile" />    
+
+                                    <h:outputText value="Address" />
+                                    <h:inputText value="#{customerBean.selectedCustomer.address}" required="true" requiredMessage="Please enter address" />    
+
+                                    <h:outputText value="Personal Number" />
+                                    <h:inputText value="#{customerBean.selectedCustomer.personalNumber}" required="true" requiredMessage="Please enter personal number" />    
+
+                                    <p:commandButton id="save" actionListener="#{customerBean.update()}" update=":tableForm:table" oncomplete="PF('customerEditDialog').hide();" 
+                                                     value="Save"/>
+                                    <p:commandButton id="cancelButton" onclick="PF('customerEditDialog').hide()" value="Cancel"/>
+                                </p:panelGrid>
+                            </p:outputPanel>
+                        </p:dialog>
+
+                        <!-- Dialog for Delete confirmation-->
+                        <p:confirmDialog 
+                            header="Delete Customer Confirmation" severity="alert"
+                            widgetVar="customerDeleteDialog"
+                            id="customerDelete">
+                            <fcore:facet name="message">
+                                <h:outputText value="Are you sure to delete '#{customerBean.selectedCustomer.name}' customer?" />
+                            </fcore:facet>
+
+                            <p:commandButton value="Yes" actionListener="#{customerBean.delete(customerBean.selectedCustomer.customerID)}" update=":tableForm:table"
+                                             oncomplete="PF('customerDeleteDialog').hide()">
+                                <fcore:ajax render="table" />
+                            </p:commandButton>
+
+                            <p:commandButton value="No" onclick="PF('customerDeleteDialog').hide()" type="button" />
+
+                        </p:confirmDialog>
+                    </h:form>
+                </center>
             </ui:define>
 
         </ui:composition>

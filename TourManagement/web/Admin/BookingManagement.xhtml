@@ -1,24 +1,199 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:fcore="http://java.sun.com/jsf/core" 
+      xmlns:p="http://primefaces.org/ui"
       >
     <h:body>
-    	<ui:composition template="/template/common/commonLayout.xhtml">
-    	
+        <ui:composition template="/template/common/commonLayout.xhtml">
+
             <ui:define name="content">
                 <script>
                     $(document).ready(function () {
                         $("#li-booking-management").addClass("active");
                     })
                 </script>
-    			<h2>This is Booking content</h2>
-    		</ui:define>
-    		
-    	</ui:composition>
-    	
+                <h:outputScript name="jquery/jquery-plugins.js" library="primefaces"/>
+                <center>
+                    <!-- Add form-->
+                    <h:form id="addForm">
+                        <h:panelGrid border="0" cellpadding="30" cellspacing="30" columns="3">
+                            <h:outputLabel>Tour ID:</h:outputLabel>
+                            <h:selectOneMenu value="#{tourOrderBean.tourID.tourID}"
+                                             converter="#{tourOrderConverterBean}" >
+                                <fcore:selectItems value="#{tourBean.readAll()}" var="tour" itemValue="#{tour.tourID}" itemLabel="#{tour.name}"/>
+                            </h:selectOneMenu>    
+                            <h:message for="errNameMess"/>
+                            <h:outputLabel>Customer ID:</h:outputLabel>
+                            <h:selectOneMenu value="#{tourOrderBean.customerID.customerID}"
+                                             converter="#{customerConverterBean}" >
+                                <fcore:selectItems value="#{customerBean.readAll()}" var="customer" itemValue="#{customer.customerID}" itemLabel="#{customer.name}"/>
+                            </h:selectOneMenu>    
+                            <h:message for="errNameMess"/>
+                            
+                            <h:outputLabel>Start Date </h:outputLabel>
+                            <h:inputText value="#{tourOrderBean.startDate}" required="true" requiredMessage="Start Date is required" id="errStartDateMess">
+                                <fcore:convertDateTime pattern="dd-MM-yyyy"/>  
+                            </h:inputText>
+                            <h:message for="errStartDateMess"/>
+                            <h:outputLabel>Order Date</h:outputLabel>
+                            <h:inputText value="#{tourOrderBean.orderDate}" required="true" requiredMessage="Order Date is required" id="errOrderDateMess">
+                                <fcore:convertDateTime pattern="dd-MM-yyyy"/>  
+                            </h:inputText>
+                            <h:message for="errOrderDateMess"/>
+                            
+                            <h:outputLabel>Notes:</h:outputLabel>
+                            <h:inputText value="#{tourOrderBean.notes}" required="true" requiredMessage="Notes is required" id="errNotesMess"/>    
+                            <h:message for="errNotesMess"/>
+                            <h:outputLabel>Status:</h:outputLabel>
+                            <h:inputText value="#{tourOrderBean.status}" required="true" requiredMessage="Status is required" id="errStatusMess"/>    
+                            <h:message for="errStatusMess"/>
+
+<h:commandLink value="Add" action="BookingManagement" actionListener="#{tourOrderBean.create()}" onclick="return confirm('Are you sure?')"/>
+                            <p:commandButton id="add" actionListener="#{tourOrderBean.create()}" value="Add" update=":tableForm:table">
+                            </p:commandButton>
+
+                        </h:panelGrid>
+                    </h:form>
+
+                    <!-- Manager form-->
+                    <h:form id="tableForm">
+                        <p:dataTable id="table" var="item" value="#{tourOrderBean.readAll()}" widgetVar="tourOrderTable" paginator="true" rows="10"
+                                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}" 
+                                     paginatorPosition="bottom" lazy="true"
+                                     style="width:900px;" emptyMessage="Data not found">  
+                            <fcore:facet name="header">
+                                This is Tour Order content
+                            </fcore:facet>
+                            <p:column headerText="Tour Order ID">  
+                                <h:outputText value="#{item.orderID}" />  
+                            </p:column>  
+                            <p:column headerText="Tour name">  
+                                <h:outputText value="#{item.tourID.name}" />  
+                            </p:column> 
+                            <p:column headerText="Customer name">  
+                                <h:outputText value="#{item.customerID.name}" />  
+                            </p:column> 
+                            <p:column headerText="Start Date">  
+                                <h:outputText value="#{item.startDate}" />  
+                            </p:column> 
+                            <p:column headerText="Order Date">  
+                                <h:outputText value="#{item.orderDate}" />  
+                            </p:column> 
+                            <p:column headerText="Notes">  
+                                <h:outputText value="#{item.notes}" />  
+                            </p:column> 
+                            <p:column headerText="Status">  
+                                <h:outputText value="#{item.status}" />  
+                            </p:column> 
+
+                            <p:column>
+                                <p:commandButton update=":tableForm:tourOrderDetail" oncomplete="PF('tourOrderDialog').show()" icon="ui-icon-search" title="View">
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{tourOrderBean.selectedTourOrder}" />
+                                </p:commandButton>
+                                <p:commandButton update=":tableForm:tourOrderEdit" oncomplete="PF('tourOrderEditDialog').show()" icon="ui-icon-pencil" title="Edit">
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{tourOrderBean.selectedTourOrder}" />
+                                </p:commandButton>
+                                <p:commandButton update=":tableForm:tourOrderDelete" oncomplete="PF('tourOrderDeleteDialog').show()"  icon="ui-icon-trash" title="Delete" >
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{tourOrderBean.selectedTourOrder}"  />
+                                </p:commandButton>
+                            </p:column>
+
+                        </p:dataTable>
+
+                        <!-- Dialog for view Detail-->
+                        <p:dialog header="Tour Order Info" widgetVar="tourOrderDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                            <p:outputPanel id="tourOrderDetail" style="text-align:center;">
+                                <p:panelGrid  columns="2" rendered="#{not empty tourOrderBean.selectedTourOrder}" >
+                                    <h:outputText value="Tour Order ID" />
+                                    <h:outputText value="#{tourOrderBean.selectedTourOrder.orderID}" />
+
+                                    <h:outputText value="Tour Name" />
+                                    <h:outputText value="#{tourOrderBean.selectedTourOrder.tourID.name}" />
+
+                                    <h:outputText value="Customer Name" />
+                                    <h:outputText value="#{tourOrderBean.selectedTourOrder.customerID.name}" />
+
+                                    <h:outputText value="Start Date" />
+                                    <h:outputText value="#{tourOrderBean.selectedTourOrder.startDate}"/>
+
+                                    <h:outputText value="Order Date" />
+                                    <h:outputText value="#{tourOrderBean.selectedTourOrder.orderDate}"/>
+
+                                    <h:outputText value="Notes" />
+                                    <h:outputText value="#{tourOrderBean.selectedTourOrder.notes}"/>
+
+                                    <h:outputText value="Status" />
+                                    <h:outputText value="#{tourOrderBean.selectedTourOrder.status}"/>
+
+                                </p:panelGrid>
+                            </p:outputPanel>
+                        </p:dialog>
+
+                        <!-- Dialog for edit-->
+                        <p:dialog header="Tour Order Edit" widgetVar="tourOrderEditDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                            <p:outputPanel id="tourOrderEdit" style="text-align:center;">
+                                <p:panelGrid  columns="2" rendered="#{not empty tourOrderBean.selectedTourOrder}" >
+                                    <h:outputText value="Tour Order ID" />                                           
+                                    <h:outputText value="#{tourOrderBean.selectedTourOrder.orderID}" />
+
+                                    <h:outputText value="Tour Name" />
+                                    <h:selectOneMenu value="#{tourOrderBean.selectedTourOrder.tourID.tourID}"
+                                                     converter="#{tourOrderConverterBean}" >
+                                        <fcore:selectItems value="#{tourBean.readAll()}" var="tour" itemValue="#{tour.tourID}" itemLabel="#{tour.name}"/>
+                                    </h:selectOneMenu>   
+
+                                    <h:outputText value="Customer Name" />
+                                    <h:selectOneMenu value="#{tourOrderBean.selectedTourOrder.customerID.customerID}"
+                                                     converter="#{customerConverterBean}" >
+                                        <fcore:selectItems value="#{customerBean.readAll()}" var="customer" itemValue="#{customer.customerID}" itemLabel="#{customer.name}"/>
+                                    </h:selectOneMenu>   
+
+                                    <h:outputText value="Start Date" />
+                                    <h:inputText value="#{tourOrderBean.selectedTourOrder.startDate}" required="true" requiredMessage="Please enter email" />    
+
+                                    <h:outputText value="Order Date" />
+                                    <h:inputText value="#{tourOrderBean.selectedTourOrder.orderDate}" required="true" requiredMessage="Please enter mobile" />    
+
+                                    <h:outputText value="Notes" />
+                                    <h:inputText value="#{tourOrderBean.selectedTourOrder.notes}" required="true" requiredMessage="Please enter address" />    
+
+                                    <h:outputText value="Status" />
+                                    <h:inputText value="#{tourOrderBean.selectedTourOrder.status}" required="true" requiredMessage="Please enter personal number" />    
+
+                                    <p:commandButton id="save" actionListener="#{tourOrderBean.update()}" update=":tableForm:table" oncomplete="PF('tourOrderEditDialog').hide();" 
+                                                     value="Save"/>
+                                    <p:commandButton id="cancelButton" onclick="PF('tourOrderEditDialog').hide()" value="Cancel"/>
+                                </p:panelGrid>
+                            </p:outputPanel>
+                        </p:dialog>
+
+                        <!-- Dialog for Delete confirmation-->
+                        <p:confirmDialog 
+                            header="Delete Tour Order Confirmation" severity="alert"
+                            widgetVar="tourOrderDeleteDialog"
+                            id="tourOrderDelete">
+                            <fcore:facet name="message">
+                                <h:outputText value="Are you sure to delete Order '#{tourOrderBean.selectedTourOrder.orderID}' ?" />
+                            </fcore:facet>
+
+                            <p:commandButton value="Yes" actionListener="#{tourOrderBean.delete(tourOrderBean.selectedTourOrder.orderID)}" update=":tableForm:table"
+                                             oncomplete="PF('tourOrderDeleteDialog').hide()">
+                                <fcore:ajax render="table" />
+                            </p:commandButton>
+
+                            <p:commandButton value="No" onclick="PF('tourOrderDeleteDialog').hide()" type="button" />
+
+                        </p:confirmDialog>
+                    </h:form>
+                </center>
+            </ui:define>
+
+        </ui:composition>
+
     </h:body>
 
 </html>

@@ -26,9 +26,19 @@ import utils.ConfigDB;
 @Named(value = "tourCateBean")
 @SessionScoped
 public class TourCateBean implements Serializable {
+
     private int tourCateID;
     private String cateName;
     private String description;
+    private TourCateBean selectedTourCate;
+
+    public TourCateBean getSelectedTourCate() {
+        return selectedTourCate;
+    }
+
+    public void setSelectedTourCate(TourCateBean selectedTourCate) {
+        this.selectedTourCate = selectedTourCate;
+    }
 
     public TourCateBean(String cateName, String description) {
         this.cateName = cateName;
@@ -40,6 +50,7 @@ public class TourCateBean implements Serializable {
         this.cateName = cateName;
         this.description = description;
     }
+
     /**
      * Creates a new instance of TourCateBean
      */
@@ -69,18 +80,24 @@ public class TourCateBean implements Serializable {
     public void setDescription(String description) {
         this.description = description;
     }
-    
+
     /*----------------------------------------------------------------------------------------------------*/
     private final String sqlCreate = "INSERT INTO TourCate VALUES(?, ?)";
     private final String sqlRead = "SELECT * FROM TourCate";
     private final String sqlReadById = "SELECT * FROM TourCate WHERE TourCateID = ?";
-    private final String sqlUpdate = "UPDATE TourCate SET CateName = ?, Description = ? WHERE TourCateID = ?";
+    private final String sqlUpdate = "SELECT * FROM TourCate WHERE TourCateID = ?";
     private final String sqlDelete = "DELETE FROM TourCate WHERE TourCateID = ?";
     private Connection connect;
     private ConfigDB db = new ConfigDB();
     private ResultSet rs;
     private PreparedStatement pst;
-    
+
+    public void clearCurrentData() {
+        this.setCateName(null);
+        this.setDescription(null);
+        this.setTourCateID(-1);
+    }
+
     /**
      * Create new Tour Category
      */
@@ -97,6 +114,7 @@ public class TourCateBean implements Serializable {
             return false;
         } finally {
             try {
+                clearCurrentData();
                 pst.close();
                 db.closeConnection();
             } catch (SQLException ex) {
@@ -105,7 +123,7 @@ public class TourCateBean implements Serializable {
         }
         return false;
     }
-    
+
     /**
      * read all Tour Category in database
      */
@@ -134,7 +152,7 @@ public class TourCateBean implements Serializable {
         }
         return null;
     }
-    
+
     /**
      * Read Tour Category base id
      */
@@ -164,7 +182,7 @@ public class TourCateBean implements Serializable {
         }
         return null;
     }
-    
+
     public void editRedirect() {
         FacesContext fc = FacesContext.getCurrentInstance();
         HttpServletRequest request = (HttpServletRequest) fc.getExternalContext().getRequest();
@@ -174,7 +192,7 @@ public class TourCateBean implements Serializable {
         this.cateName = data.getCateName();
         this.description = data.getDescription();
     }
-    
+
     /**
      * Update Tour Category base id
      */
@@ -183,14 +201,14 @@ public class TourCateBean implements Serializable {
         try {
             pst = connect.prepareStatement(sqlUpdate, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             FacesContext fc = FacesContext.getCurrentInstance();
-        HttpServletRequest request = (HttpServletRequest) fc.getExternalContext().getRequest();
-        int id = Integer.valueOf(request.getParameter("id"));
-        
-            pst.setInt(1, id);
+            HttpServletRequest request = (HttpServletRequest) fc.getExternalContext().getRequest();
+            //int id = Integer.valueOf(request.getParameter("id"));
+
+            pst.setInt(1, this.selectedTourCate.getTourCateID());
             rs = pst.executeQuery();
-            if(rs.first()) {
-                rs.updateString("CateName", this.getCateName());
-                rs.updateString("Description", this.getDescription());
+            if (rs.first()) {
+                rs.updateString("CateName", this.selectedTourCate.getCateName());
+                rs.updateString("Description", this.selectedTourCate.getDescription());
                 rs.updateRow();
                 return true;
             }
@@ -207,7 +225,7 @@ public class TourCateBean implements Serializable {
         }
         return false;
     }
-    
+
     /**
      * Delete Tour Category base id
      */

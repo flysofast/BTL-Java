@@ -33,6 +33,15 @@ public class CustomerBean implements Serializable {
     private String mobile;
     private String address;
     private String personalNumber;
+    private CustomerBean selectedCustomer;
+
+    public CustomerBean getSelectedCustomer() {
+        return selectedCustomer;
+    }
+
+    public void setSelectedCustomer(CustomerBean selectedCustomer) {
+        this.selectedCustomer = selectedCustomer;
+    }
 
     public CustomerBean(int customerID, UserBean userID, String name, String email, String mobile, String address, String personalNumber) {
         this.customerID = customerID;
@@ -67,6 +76,9 @@ public class CustomerBean implements Serializable {
     }
 
     public UserBean getUserID() {
+        if(userID == null){
+           userID = new UserBean();
+        }
         return userID;
     }
 
@@ -117,8 +129,8 @@ public class CustomerBean implements Serializable {
     /*----------------------------------------------------------------------------------------------------*/
     private final String sqlCreate = "INSERT INTO Customers VALUES(?, ?, ?, ?, ?, ?)";
     private final String sqlRead = "SELECT * FROM Customers";
-    private final String sqlReadById = "SELECT * FROM Users WHERE CustomerID = ?";
-    private final String sqlUpdate = "UPDATE Customers SET UserID = ?, Name = ?, Email = ?, Mobile = ?, Address = ?, PersonalNumber = ? WHERE CustomerID = ?";
+    private final String sqlReadById = "SELECT * FROM Customers WHERE CustomerID = ?";
+    private final String sqlUpdate = "SELECT * FROM Customers WHERE CustomerID = ?";
     private final String sqlDelete = "DELETE FROM Customers WHERE CustomerID = ?";
     private Connection connect;
     private ConfigDB db = new ConfigDB();;

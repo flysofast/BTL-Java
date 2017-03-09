@@ -5,9 +5,15 @@
  */
 package model_controller;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
 import utils.ConfigDB;
 
 /**
@@ -26,12 +33,34 @@ import utils.ConfigDB;
 @Named(value = "tourBean")
 @SessionScoped
 public class TourBean implements Serializable {
+
     private int tourID;
     private TourCateBean tourCateID;
     private String name;
     private String imageUrl;
     private float price;
     private String description;
+    private Part imageFile;
+    private TourBean selectedTour;
+
+    public TourBean getSelectedTour() {
+        if(selectedTour == null){
+            selectedTour = new TourBean();
+        }
+        return selectedTour;
+    }
+
+    public void setSelectedTour(TourBean selectedTour) {
+        this.selectedTour = selectedTour;
+    }
+
+    public Part getImageFile() {
+        return imageFile;
+    }
+
+    public void setImageFile(Part imageFile) {
+        this.imageFile = imageFile;
+    }
 
     public TourBean(TourCateBean tourCateID, String name, String imageUrl, float price, String description) {
         this.tourCateID = tourCateID;
@@ -49,6 +78,7 @@ public class TourBean implements Serializable {
         this.price = price;
         this.description = description;
     }
+
     /**
      * Creates a new instance of TourBean
      */
@@ -102,24 +132,43 @@ public class TourBean implements Serializable {
     public void setDescription(String description) {
         this.description = description;
     }
-    
+
     /*----------------------------------------------------------------------------------------------------*/
     private final String sqlCreate = "INSERT INTO Tours VALUES(?, ?, ?, ?, ?)";
     private final String sqlRead = "SELECT * FROM Tours";
     private final String sqlReadById = "SELECT * FROM Tours WHERE TourID = ?";
-    private final String sqlUpdate = "UPDATE Tours SET TourCateID = ?, Name = ?, ImageUrl = ?, Pricate = ?, Description = ? WHERE TourID = ?";
+    private final String sqlUpdate = "SELECT * FROM Tours WHERE TourID = ?";
     private final String sqlDelete = "DELETE FROM Tours WHERE TourID = ?";
     private Connection connect;
     private ConfigDB db = new ConfigDB();
     private ResultSet rs;
     private PreparedStatement pst;
-    
+
+    /**
+     * Upload handle
+     */
+    public void uploadImage() {
+        Part uploadedFile = imageFile;
+        final Path destination = Paths.get("F:/test.png");
+        InputStream bytes = null;
+        if (null != uploadedFile) {
+            try{
+                bytes = uploadedFile.getInputStream();
+                Files.copy(bytes, destination);
+            this.imageUrl = "F:/test.png"; 
+            }catch(IOException e){
+                this.imageUrl = "F:/test.png"; 
+            }
+        }
+    }
+
     /**
      * Create new Tour
      */
     public boolean create() {
         connect = db.getConection();
         try {
+            if(this.getImageUrl() == null){ this.setImageUrl("aa");}
             pst = connect.prepareStatement(sqlCreate);
             pst.setInt(1, this.getTourCateID().getTourCateID());
             pst.setString(2, this.getName());
@@ -141,7 +190,7 @@ public class TourBean implements Serializable {
         }
         return false;
     }
-    
+
     /**
      * read all Tour in database
      */
@@ -173,7 +222,7 @@ public class TourBean implements Serializable {
         }
         return null;
     }
-    
+
     /**
      * Read Tour base id
      */
@@ -206,6 +255,7 @@ public class TourBean implements Serializable {
         }
         return null;
     }
+
     public void editRedirect() {
         FacesContext fc = FacesContext.getCurrentInstance();
         HttpServletRequest request = (HttpServletRequest) fc.getExternalContext().getRequest();
@@ -218,7 +268,7 @@ public class TourBean implements Serializable {
         this.price = data.getPrice();
         this.description = data.getDescription();
     }
-    
+
     /**
      * Update Tour base id
      */
@@ -227,12 +277,12 @@ public class TourBean implements Serializable {
         try {
             pst = connect.prepareStatement(sqlUpdate, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             FacesContext fc = FacesContext.getCurrentInstance();
-        HttpServletRequest request = (HttpServletRequest) fc.getExternalContext().getRequest();
-        int id = Integer.valueOf(request.getParameter("id"));
-        
+            HttpServletRequest request = (HttpServletRequest) fc.getExternalContext().getRequest();
+            int id = Integer.valueOf(request.getParameter("id"));
+
             pst.setInt(1, id);
             rs = pst.executeQuery();
-            if(rs.first()) {
+            if (rs.first()) {
                 rs.updateInt("TourCateID", this.getTourCateID().getTourCateID());
                 rs.updateString("Name", this.getName());
                 rs.updateString("ImageUrl", this.getImageUrl());
@@ -254,7 +304,7 @@ public class TourBean implements Serializable {
         }
         return false;
     }
-    
+
     /**
      * Delete Tour base id
      */

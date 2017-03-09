@@ -5,6 +5,7 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:fcore="http://java.sun.com/jsf/core"     
+      xmlns:p="http://primefaces.org/ui"
       >
     <h:body>
 
@@ -16,32 +17,110 @@
                         $("#li-tour-category-management").addClass("active");
                     })
                 </script>
-                <h2>This is Tour Category content</h2>
+                <h:outputScript name="jquery/jquery-plugins.js" library="primefaces"/>
                 <center>
-                    <fcore:view>
-                        <h:form>
-                            <h:dataTable var="item" value="#{tourCateBean.readAll()}" cellpadding="2" cellspacing="2">
-                                
-                                <h:column>
-                                    <fcore:facet name="header">Tour Category ID</fcore:facet>
-                                    <h:outputText value="#{item.tourCateID}"/>
-                                </h:column>
-                                <h:column>
-                                    <fcore:facet name="header">Category Name</fcore:facet>
-                                    <h:outputText value="#{item.cateName}"/>
-                                </h:column>
-                                <h:column>
-                                    <fcore:facet name="header">Description</fcore:facet>
-                                    <h:outputText value="#{item.description}"/>
-                                </h:column>
+                    <!-- Add form-->
+                    <h:form id="addForm">
+                        <h:panelGrid border="0" cellpadding="30" cellspacing="30" columns="3">
+                            <h:outputLabel>Tour Category Name:</h:outputLabel>
+                            <h:inputText value="#{tourCateBean.cateName}" required="true" requiredMessage="Tour Category name required" id="errNameMess"/>    
+                            <h:message for="errNameMess"/>
+                            <h:outputLabel>Description:</h:outputLabel>
+                            <h:inputText value="#{tourCateBean.description}" required="true" requiredMessage="Description is required" id="errDesMess"/>
+                            <h:message for="errDesMess"/>
+                            <p:commandButton id="add" actionListener="#{tourCateBean.create()}" update=":tableForm:table" value="Add">
+                            </p:commandButton>
+                            
+                        </h:panelGrid>
+                    </h:form>
+                    <!-- Manager form-->
+                    <h:form id="tableForm">
+                        <p:dataTable id="table" var="item" value="#{tourCateBean.readAll()}" widgetVar="tourCateTable" paginator="true" rows="10"
+                                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}" 
+                                     paginatorPosition="bottom" lazy="true"
+                                     style="width:900px;" emptyMessage="Data not found">  
+                            <fcore:facet name="header">
+                                This is Tour Category content
+                            </fcore:facet>
+                            <p:column headerText="Tour Category ID">  
+                                <h:outputText value="#{item.tourCateID}" />  
+                            </p:column>  
+                            <p:column headerText="Tour Category Name">  
+                                <h:outputText value="#{item.cateName}" />  
+                            </p:column> 
+                            <p:column headerText="Tour Category Description">  
+                                <h:outputText value="#{item.description}" />  
+                            </p:column> 
 
-                                <h:column>
-                                    <fcore:facet name="header">Delete</fcore:facet>
-                                    <h:commandLink action="TourCategoryManagement" actionListener="#{tourCateBean.delete(item.tourCateID)}" value="Delete"/> 
-                                </h:column>
-                            </h:dataTable>
-                        </h:form>
-                    </fcore:view>
+                            <p:column>
+                                <p:commandButton update=":tableForm:tourCateDetail" oncomplete="PF('tourCateDialog').show()" icon="ui-icon-search" title="View">
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{tourCateBean.selectedTourCate}" />
+                                </p:commandButton>
+                                <p:commandButton update=":tableForm:tourCateEdit" oncomplete="PF('tourCateEditDialog').show()" icon="ui-icon-pencil" title="Edit">
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{tourCateBean.selectedTourCate}" />
+                                </p:commandButton>
+                                <p:commandButton update=":tableForm:tourCateDelete" oncomplete="PF('tourCateDeleteDialog').show()"  icon="ui-icon-trash" title="Delete" >
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{tourCateBean.selectedTourCate}"  />
+                                </p:commandButton>
+                            </p:column>
+
+                        </p:dataTable>
+
+                        <!-- Dialog for view Detail-->
+                        <p:dialog header="Tour Category Info" widgetVar="tourCateDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                            <p:outputPanel id="tourCateDetail" style="text-align:center;">
+                                <p:panelGrid  columns="2" rendered="#{not empty tourCateBean.selectedTourCate}" >
+                                    <h:outputText value="Tour Category ID" />
+                                    <h:outputText value="#{tourCateBean.selectedTourCate.tourCateID}" />
+
+                                    <h:outputText value="Tour Category Name" />
+                                    <h:outputText value="#{tourCateBean.selectedTourCate.cateName}" />
+
+                                    <h:outputText value="Tour Category Description" />
+                                    <h:outputText value="#{tourCateBean.selectedTourCate.description}"/>
+
+                                </p:panelGrid>
+                            </p:outputPanel>
+                        </p:dialog>
+
+                        <!-- Dialog for edit-->
+                        <p:dialog header="Tour Category Edit" widgetVar="tourCateEditDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                            <p:outputPanel id="tourCateEdit" style="text-align:center;">
+                                <p:panelGrid  columns="2" rendered="#{not empty tourCateBean.selectedTourCate}" >
+                                    <h:outputText value="Tour Category ID" />                                           
+                                    <h:outputText value="#{tourCateBean.selectedTourCate.tourCateID}" />
+
+                                    <h:outputText value="Tour Category Name" />
+                                    <h:inputText value="#{tourCateBean.selectedTourCate.cateName}" required="true" requiredMessage="Please enter tour name" />    
+
+                                    <h:outputText value="Tour Category Description" />
+                                    <h:inputTextarea cols="18" value="#{tourCateBean.selectedTourCate.description}" required="true" requiredMessage="Please enter description" />    
+
+                                    <p:commandButton id="save" actionListener="#{tourCateBean.update()}" update=":tableForm:table" oncomplete="PF('tourCateEditDialog').hide();" 
+                                                     value="Save"/>
+                                    <p:commandButton id="cancelButton" onclick="PF('tourCateEditDialog').hide()" value="Cancel"/>
+                                </p:panelGrid>
+                            </p:outputPanel>
+                        </p:dialog>
+
+                        <!-- Dialog for Delete confirmation-->
+                        <p:confirmDialog 
+                            header="Delete Tour Category Confirmation" severity="alert"
+                            widgetVar="tourCateDeleteDialog"
+                            id="tourCateDelete">
+                            <fcore:facet name="message">
+                                <h:outputText value="Are you sure to delete '#{tourCateBean.selectedTourCate.cateName}' tour category?" />
+                            </fcore:facet>
+
+                            <p:commandButton value="Yes" actionListener="#{tourCateBean.delete(tourCateBean.selectedTourCate.tourCateID)}" update=":tableForm:table"
+                                             oncomplete="PF('tourCateDeleteDialog').hide()">
+                                <fcore:ajax render="table" />
+                            </p:commandButton>
+
+                            <p:commandButton value="No" onclick="PF('tourCateDeleteDialog').hide()" type="button" />
+
+                        </p:confirmDialog>
+                    </h:form>
                 </center>
             </ui:define>
 

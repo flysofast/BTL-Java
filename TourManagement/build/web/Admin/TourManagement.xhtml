@@ -4,6 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:fcore="http://java.sun.com/jsf/core"
       >
     <h:body>
 
@@ -15,7 +17,154 @@
                         $("#li-tour-management").addClass("active");
                     })
                 </script>
-                <h2>This is Tour content</h2>
+                <h:outputScript name="jquery/jquery-plugins.js" library="primefaces"/>
+                <center>
+                    <!-- Add form-->
+                    <h:form id="addForm" enctype="multipart/form-data">
+                        <h:panelGrid border="0" cellpadding="30" cellspacing="30" columns="3">
+                            <h:outputLabel>Tour Category Name:</h:outputLabel>
+                            <h:selectOneMenu value="#{tourBean.tourCateID.tourCateID}"
+                                             converter="#{TourCateConverter}"
+                                             id="errTourCateMess">
+                                <fcore:selectItems value="#{tourCateBean.readAll()}" var="tourCate" itemValue="#{tourCate.tourCateID}" itemLabel="#{tourCate.cateName}"/>
+                            </h:selectOneMenu>
+                            <h:message for="errTourCateMess"/>
+                            
+                            <h:outputLabel>Name</h:outputLabel>
+                            <h:inputText value="#{tourBean.name}" required="true" requiredMessage="Name is required" id="errNameMess"/>
+                            <h:message for="errNameMess"/>
+
+                            <h:outputLabel>Image</h:outputLabel>
+                            <h:inputFile  value="#{tourBean.imageFile}" required="true" requiredMessage="Image is required" id="errImageMess">
+                                <fcore:ajax listener="#{tourBean.uploadImage}" />
+                            </h:inputFile>
+                            <h:message for="errImageMess"/>
+
+                            <h:outputLabel>Price</h:outputLabel>
+                            <h:inputText value="#{tourBean.price}" required="true" requiredMessage="Price is required" id="errPriceMess"/>
+                            <h:message for="errPriceMess"/>
+
+                            <h:outputLabel>Description</h:outputLabel>
+                            <h:inputText value="#{tourBean.description}" required="true" requiredMessage="Descipriton is required" id="errDescriptionMess"/>
+                            <h:message for="errDescriptionMess"/>
+
+                            <p:commandButton id="add" actionListener="#{tourBean.create()}" update=":tableForm:table" value="Add">
+                            </p:commandButton>
+                        </h:panelGrid>
+                    </h:form>
+
+                    <!-- Manager form-->
+                    <h:form id="tableForm">
+                        <p:dataTable id="table" var="item" value="#{tourBean.readAll()}" widgetVar="tourTable" paginator="true" rows="10"
+                                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}" 
+                                     paginatorPosition="bottom" lazy="true"
+                                     style="width:900px;" emptyMessage="Data not found">  
+                            <fcore:facet name="header">
+                                This is Tour content
+                            </fcore:facet>
+                            <p:column headerText="Tour ID">  
+                                <h:outputText value="#{item.tourID}" />  
+                            </p:column>  
+                            <p:column headerText="Tour Category Name">  
+                                <h:outputText value="#{item.tourCateID.cateName}" />  
+                            </p:column> 
+                            <p:column headerText="Tour Image">  
+                                <h:outputText value="#{item.imageUrl}" />  
+                            </p:column> 
+                            <p:column headerText="Tour Price">  
+                                <h:outputText value="#{item.price}" />  
+                            </p:column> 
+                            <p:column headerText="Tour Description">  
+                                <h:outputText value="#{item.description}" />  
+                            </p:column> 
+
+                            <p:column>
+                                <p:commandButton update=":tableForm:tourDetail" oncomplete="PF('tourDialog').show()" icon="ui-icon-search" title="View">
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{tourBean.selectedTour}" />
+                                </p:commandButton>
+                                <p:commandButton update=":tableForm:tourEdit" oncomplete="PF('tourEditDialog').show()" icon="ui-icon-pencil" title="Edit">
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{tourBean.selectedTour}" />
+                                </p:commandButton>
+                                <p:commandButton update=":tableForm:tourDelete" oncomplete="PF('tourDeleteDialog').show()"  icon="ui-icon-trash" title="Delete" >
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{tourBean.selectedTour}"  />
+                                </p:commandButton>
+                            </p:column>
+
+                        </p:dataTable>
+
+                        <!-- Dialog for view Detail-->
+                        <p:dialog header="Tour Info" widgetVar="tourDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                            <p:outputPanel id="tourDetail" style="text-align:center;">
+                                <p:panelGrid  columns="2" rendered="#{not empty tourBean.selectedTour}" >
+                                    <h:outputText value="Tour ID" />
+                                    <h:outputText value="#{tourBean.selectedTour.tourID}" />
+
+                                    <h:outputText value="Tour Category Name" />
+                                    <h:outputText value="#{tourBean.selectedTour.tourCateID.cateName}" />
+
+                                    <h:outputText value="Tour Image URL" />
+                                    <h:outputText value="#{tourBean.selectedTour.imageUrl}"/>
+
+                                    <h:outputText value="Tour Price" />
+                                    <h:outputText value="#{tourBean.selectedTour.price}"/>
+
+                                    <h:outputText value="Tour Description" />
+                                    <h:outputText value="#{tourBean.selectedTour.description}"/>
+
+                                </p:panelGrid>
+                            </p:outputPanel>
+                        </p:dialog>
+
+                        <!-- Dialog for edit-->
+                        <p:dialog header="Tour Category Edit" widgetVar="tourEditDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                            <p:outputPanel id="tourEdit" style="text-align:center;">
+                                <p:panelGrid  columns="2" rendered="#{not empty tourBean.selectedTour}" >
+                                    <h:outputText value="Tour Category ID" />                                           
+                                    <h:outputText value="#{tourBean.selectedTour.tourID}" />
+
+                                    <h:outputText value="Tour Category Name" />
+                                    <h:selectOneMenu value="#{tourBean.selectedTour.tourCateID}"
+                                                     converter="#{TourCateConverter}">
+                                        <fcore:selectItems value="#{tourCateBean.readAll()}" var="tourCate" itemValue="#{tourCate.tourCateID}" itemLabel="#{tourCate.cateName}"/>
+                                    </h:selectOneMenu>
+
+                                    <h:outputText value="Tour Image URL" />
+                                    <h:inputFile  value="#{tourBean.selectedTour.imageFile}" required="true" requiredMessage="Image is required" id="errImageMess">
+                                        <fcore:ajax listener="#{tourBean.uploadImage}" />
+                                    </h:inputFile>
+
+                                    <h:outputText value="Tour Price" />
+                                    <h:inputTextarea cols="18" value="#{tourBean.selectedTour.price}" required="true" requiredMessage="Please enter description" />    
+
+                                    <h:outputText value="Tour Description" />
+                                    <h:inputTextarea cols="18" value="#{tourBean.selectedTour.description}" required="true" requiredMessage="Please enter description" />    
+
+                                    <p:commandButton id="save" actionListener="#{tourBean.update()}" update=":tableForm:table" oncomplete="PF('tourEditDialog').hide();" 
+                                                     value="Save"/>
+                                    <p:commandButton id="cancelButton" onclick="PF('tourEditDialog').hide()" value="Cancel"/>
+                                </p:panelGrid>
+                            </p:outputPanel>
+                        </p:dialog>
+
+                        <!-- Dialog for Delete confirmation-->
+                        <p:confirmDialog 
+                            header="Delete Tour Confirmation" severity="alert"
+                            widgetVar="tourDeleteDialog"
+                            id="tourDelete">
+                            <fcore:facet name="message">
+                                <h:outputText value="Are you sure to delete '#{tourBean.selectedTour.tourID}' tour category?" />
+                            </fcore:facet>
+
+                            <p:commandButton value="Yes" actionListener="#{tourBean.delete(tourBean.selectedTour.tourID)}" update=":tableForm:table"
+                                             oncomplete="PF('tourDeleteDialog').hide()">
+                                <fcore:ajax render="table" />
+                            </p:commandButton>
+
+                            <p:commandButton value="No" onclick="PF('tourDeleteDialog').hide()" type="button" />
+
+                        </p:confirmDialog>
+                    </h:form>
+                </center>
             </ui:define>
 
         </ui:composition>

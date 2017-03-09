@@ -5,8 +5,9 @@
  */
 package model_controller;
 
+import java.io.Serializable;
 import java.sql.Connection;
-import java.sql.Date;
+import java.util.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Named;
 import javax.enterprise.context.Dependent;
+import javax.enterprise.context.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
 import utils.ConfigDB;
@@ -24,8 +26,8 @@ import utils.ConfigDB;
  * @author USER
  */
 @Named(value = "tourOrderBean")
-@Dependent
-public class TourOrderBean {
+@SessionScoped
+public class TourOrderBean implements Serializable {
     private int orderID;
     private TourBean tourID;
     private CustomerBean customerID;
@@ -33,6 +35,15 @@ public class TourOrderBean {
     private Date orderDate;
     private String notes;
     private int status;
+    private TourOrderBean selectedTourOrder;
+
+    public TourOrderBean getSelectedTourOrder() {
+        return selectedTourOrder;
+    }
+
+    public void setSelectedTourOrder(TourOrderBean selectedTourOrder) {
+        this.selectedTourOrder = selectedTourOrder;
+    }
 
     public TourOrderBean(TourBean tourID, CustomerBean customerID, Date startDate, Date orderDate, String notes, int status) {
         this.tourID = tourID;
@@ -67,6 +78,9 @@ public class TourOrderBean {
     }
 
     public TourBean getTourID() {
+        if(tourID == null){
+           tourID = new TourBean();
+        }
         return tourID;
     }
 
@@ -75,6 +89,9 @@ public class TourOrderBean {
     }
 
     public CustomerBean getCustomerID() {
+        if(customerID == null){
+           customerID = new CustomerBean();
+        }
         return customerID;
     }
 
@@ -117,9 +134,9 @@ public class TourOrderBean {
     /*----------------------------------------------------------------------------------------------------*/
     private final String sqlCreate = "INSERT INTO TourOrders VALUES(?, ?, ?, ?, ?, ?)";
     private final String sqlRead = "SELECT * FROM TourOrders";
-    private final String sqlReadById = "SELECT * FROM TourOrders WHERE TourOrderID = ?";
-    private final String sqlUpdate = "UPDATE TourOrders SET TourID = ?, CustomerID = ?, StartDate = ?, OrderDate = ?, Notes = ?, Status = ? WHERE TourOrderID = ?";
-    private final String sqlDelete = "DELETE FROM TourOrders WHERE TourOrderID = ?";
+    private final String sqlReadById = "SELECT * FROM TourOrders WHERE OrderID = ?";
+    private final String sqlUpdate = "SELECT * FROM TourOrders WHERE OrderID = ?";
+    private final String sqlDelete = "DELETE FROM TourOrders WHERE OrderID = ?";
     private Connection connect;
     private ConfigDB db = new ConfigDB();
     private ResultSet rs;
@@ -134,8 +151,10 @@ public class TourOrderBean {
             pst = connect.prepareStatement(sqlCreate);
             pst.setInt(1, this.getTourID().getTourID());
             pst.setInt(2, this.getCustomerID().getCustomerID());
-            pst.setDate(3, this.getStartDate());
-            pst.setDate(4, this.getOrderDate());
+            java.sql.Date startDate = new java.sql.Date(this.getStartDate().getTime());
+            pst.setDate(3, startDate);
+            java.sql.Date orderDate = new java.sql.Date(this.getOrderDate().getTime());
+            pst.setDate(4, orderDate);
             pst.setString(5, this.getNotes());
             pst.setInt(6, this.getStatus());
             if (pst.executeUpdate() > 0) {
@@ -250,8 +269,11 @@ public class TourOrderBean {
             if(rs.first()) {
                 rs.updateInt("TourID", this.getTourID().getTourID());
                 rs.updateInt("CustomerID", this.getCustomerID().getCustomerID());
-                rs.updateDate("StartDate", this.getStartDate());
-                rs.updateDate("OrderDate", this.getOrderDate());
+                java.sql.Date startDate = new java.sql.Date(this.getStartDate().getTime());
+                java.sql.Date orderDate = new java.sql.Date(this.getOrderDate().getTime());
+            
+                rs.updateDate("StartDate", startDate);
+                rs.updateDate("OrderDate", orderDate);
                 rs.updateString("Notes", this.getNotes());
                 rs.updateInt("Status", this.getStatus());
                 rs.updateRow();

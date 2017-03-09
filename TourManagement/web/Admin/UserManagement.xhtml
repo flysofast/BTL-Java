@@ -4,9 +4,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml"   
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:fcore="http://java.sun.com/jsf/core"   
       >
     <h:body>
-
         <ui:composition template="/template/common/commonLayout.xhtml">
 
             <ui:define name="content">
@@ -15,7 +16,134 @@
                         $("#li-user-management").addClass("active");
                     })
                 </script>
-                <h2>This is User content</h2>
+                <h:outputScript name="jquery/jquery-plugins.js" library="primefaces"/>
+                <center>
+                    <!-- Add form-->
+                    <h:form id="addForm">
+                        <h:panelGrid border="0" cellpadding="30" cellspacing="30" columns="3">
+                            <h:outputLabel>Username:</h:outputLabel>
+                            <h:inputText value="#{userBean.username}" required="true" requiredMessage="Username required" id="errUserNameMess"/>    
+                            <h:message for="errUserNameMess"/>
+                            <h:outputLabel>Password:</h:outputLabel>
+                            <h:inputText value="#{userBean.password}" required="true" requiredMessage="Password required" id="errPasswordMess"/>
+                            <h:message for="errPasswordMess"/>
+                            <h:outputLabel>Role No</h:outputLabel>
+                            <h:inputText value="#{userBean.roleNo}" required="true" requiredMessage="Role No required" id="errDesMess"/>
+                            <h:message for="errDesMess"/>
+                            <h:outputLabel>Status</h:outputLabel>
+                            <h:inputText value="#{userBean.status}" required="true" requiredMessage="Status required" id="errStatusMess"/>
+                            <h:message for="errStatusMess"/>
+                            <p:commandButton id="add" actionListener="#{userBean.create()}" update=":tableForm:table" value="Add">
+                            </p:commandButton>                            
+                        </h:panelGrid>
+                    </h:form>
+                    <!-- Manager form-->
+                    <h:form id="tableForm">
+                        <p:dataTable id="table" var="item" value="#{userBean.readAll()}" widgetVar="userTable" paginator="true" rows="10"
+                                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}" 
+                                     paginatorPosition="bottom" lazy="true"
+                                     style="width:900px;" emptyMessage="Data not found">  
+                            <fcore:facet name="header">
+                                This is User content
+                            </fcore:facet>
+                            <p:column headerText="User ID">  
+                                <h:outputText value="#{item.userID}" />  
+                            </p:column>  
+                            <p:column headerText="Username">  
+                                <h:outputText value="#{item.username}" />  
+                            </p:column> 
+                            <p:column headerText="Password">  
+                                <h:outputText value="#{item.password}" />  
+                            </p:column> 
+                            <p:column headerText="RoleNo">  
+                                <h:outputText value="#{item.roleNo}" />  
+                            </p:column> 
+                            <p:column headerText="Status">  
+                                <h:outputText value="#{item.status}" />  
+                            </p:column> 
+
+                            <p:column>
+                                <p:commandButton update=":tableForm:userDetail" oncomplete="PF('userDialog').show()" icon="ui-icon-search" title="View">
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{userBean.selectedUser}" />
+                                </p:commandButton>
+                                <p:commandButton update=":tableForm:userEdit" oncomplete="PF('userEditDialog').show()" icon="ui-icon-pencil" title="Edit">
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{userBean.selectedUser}" />
+                                </p:commandButton>
+                                <p:commandButton update=":tableForm:userDelete" oncomplete="PF('userDeleteDialog').show()"  icon="ui-icon-trash" title="Delete" >
+                                    <fcore:setPropertyActionListener value="#{item}" target="#{userBean.selectedUser}"  />
+                                </p:commandButton>
+                            </p:column>
+
+                        </p:dataTable>
+
+                        <!-- Dialog for view Detail-->
+                        <p:dialog header="User Info" widgetVar="userDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                            <p:outputPanel id="userDetail" style="text-align:center;">
+                                <p:panelGrid  columns="2" rendered="#{not empty userBean.selectedUser}" >
+                                    <h:outputText value="User ID" />
+                                    <h:outputText value="#{userBean.selectedUser.userID}" />
+
+                                    <h:outputText value="Username" />
+                                    <h:outputText value="#{userBean.selectedUser.username}" />
+
+                                    <h:outputText value="Password" />
+                                    <h:outputText value="#{userBean.selectedUser.password}"/>
+                                    
+                                    <h:outputText value="RoleNo" />
+                                    <h:outputText value="#{userBean.selectedUser.roleNo}"/>
+                                    
+                                    <h:outputText value="Status" />
+                                    <h:outputText value="#{userBean.selectedUser.status}"/>
+
+                                </p:panelGrid>
+                            </p:outputPanel>
+                        </p:dialog>
+
+                        <!-- Dialog for edit-->
+                        <p:dialog header="User Edit" widgetVar="userEditDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                            <p:outputPanel id="userEdit" style="text-align:center;">
+                                <p:panelGrid  columns="2" rendered="#{not empty userBean.selectedUser}" >
+                                    <h:outputText value="User ID" />                                           
+                                    <h:outputText value="#{userBean.selectedUser.userID}" />
+
+                                    <h:outputText value="Username" />
+                                    <h:inputText value="#{userBean.selectedUser.username}" required="true" requiredMessage="Please enter username" />    
+
+                                    <h:outputText value="Password" />
+                                    <h:inputText value="#{userBean.selectedUser.password}" required="true" requiredMessage="Please enter password" />    
+
+                                    <h:outputText value="RoleNo" />
+                                    <h:inputText value="#{userBean.selectedUser.roleNo}" required="true" requiredMessage="Please enter roleNo" />    
+
+                                    <h:outputText value="Status" />
+                                    <h:inputText value="#{userBean.selectedUser.status}" required="true" requiredMessage="Please enter status" />    
+
+                                    <p:commandButton id="save" actionListener="#{userBean.update()}" update=":tableForm:table" oncomplete="PF('userEditDialog').hide();" 
+                                                     value="Save"/>
+                                    <p:commandButton id="cancelButton" onclick="PF('userEditDialog').hide()" value="Cancel"/>
+                                </p:panelGrid>
+                            </p:outputPanel>
+                        </p:dialog>
+
+                        <!-- Dialog for Delete confirmation-->
+                        <p:confirmDialog 
+                            header="Delete User Confirmation" severity="alert"
+                            widgetVar="userDeleteDialog"
+                            id="userDelete">
+                            <fcore:facet name="message">
+                                <h:outputText value="Are you sure to delete '#{userBean.selectedUser.username}' ?" />
+                            </fcore:facet>
+
+                            <p:commandButton value="Yes" actionListener="#{userBean.delete(userBean.selectedUser.userID)}" update=":tableForm:table"
+                                             oncomplete="PF('userDeleteDialog').hide()">
+                                <fcore:ajax render="table" />
+                            </p:commandButton>
+
+                            <p:commandButton value="No" onclick="PF('userDeleteDialog').hide()" type="button" />
+
+                        </p:confirmDialog>
+                    </h:form>
+                </center>
             </ui:define>
 
         </ui:composition>
